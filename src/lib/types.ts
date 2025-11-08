@@ -1,5 +1,6 @@
 export type Transaction = {
   id: string;
+  userId: string;
   date: string; // ISO string
   description: string;
   amount: number;

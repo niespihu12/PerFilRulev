@@ -6,6 +6,8 @@ import * as z from "zod"
 import { useState, useTransition } from "react"
 import { CalendarIcon, Loader2, Sparkles } from "lucide-react"
 import { format } from "date-fns"
+import { collection, addDoc } from "firebase/firestore"
+import { useFirestore, useUser } from "@/firebase"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -59,13 +61,15 @@ type TransactionFormValues = z.infer<typeof transactionFormSchema>
 interface AddTransactionDialogProps {
   isOpen: boolean
   setIsOpen: (isOpen: boolean) => void
-  onTransactionAdded: (transaction: Transaction) => void
+  onTransactionAdded: (transaction: Omit<Transaction, 'id' | 'userId'>) => void
 }
 
 export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: AddTransactionDialogProps) {
   const [isAiPending, startAiTransition] = useTransition()
   const [aiExplanation, setAiExplanation] = useState<string | null>(null)
   const { toast } = useToast()
+  const firestore = useFirestore()
+  const { user } = useUser()
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
@@ -109,22 +113,43 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
     })
   }
 
-  function onSubmit(data: TransactionFormValues) {
-    const newTransaction: Transaction = {
-      id: new Date().toISOString(), // Temporary unique ID
+  async function onSubmit(data: TransactionFormValues) {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "You must be logged in to add a transaction.",
+      })
+      return
+    }
+    
+    const newTransaction = {
       ...data,
       date: data.date.toISOString(),
-      // For income, we force category to Savings for consistency
       category: data.type === 'income' ? 'Savings' : data.category,
+      userId: user.uid,
     }
-    onTransactionAdded(newTransaction)
-    form.reset()
-    setAiExplanation(null)
-    setIsOpen(false)
-    toast({
-      title: "Transaction Added",
-      description: `${data.description} was successfully added.`,
-    })
+
+    try {
+      const transactionsCol = collection(firestore, "users", user.uid, "transactions")
+      await addDoc(transactionsCol, newTransaction)
+      
+      onTransactionAdded(newTransaction)
+      form.reset()
+      setAiExplanation(null)
+      setIsOpen(false)
+      toast({
+        title: "Transaction Added",
+        description: `${data.description} was successfully added.`,
+      })
+    } catch(error) {
+      console.error("Error adding transaction:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not add transaction. Please try again.",
+      })
+    }
   }
   
   return (

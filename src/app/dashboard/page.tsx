@@ -1,25 +1,44 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { collection, query } from "firebase/firestore"
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+
 import { Header } from "@/components/dashboard/header"
 import { StatCards } from "@/components/dashboard/stat-cards"
 import { OverviewChart } from "@/components/dashboard/overview-chart"
 import { RecentTransactions } from "@/components/dashboard/recent-transactions"
 import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog"
-import { mockTransactions } from "@/lib/data"
 import { type Transaction } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 
 export default function DashboardPage() {
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
-  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
   const { toast } = useToast()
+  const firestore = useFirestore()
+  const { user } = useUser()
 
-  const handleAddTransaction = (newTransaction: Transaction) => {
-    setTransactions((prev) => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()))
+  const transactionsQuery = useMemoFirebase(() => 
+    user ? query(collection(firestore, "users", user.uid, "transactions")) : null
+  , [firestore, user]);
+
+  const { data: transactions = [], isLoading } = useCollection<Transaction>(transactionsQuery)
+
+  const handleAddTransaction = (newTransaction: Omit<Transaction, 'id' | 'userId'>) => {
+    if (!user) return
+    // In a real app, you'd add this to Firestore.
+    // For now, we just update the local state.
+    console.log("New transaction added:", newTransaction)
   }
 
+  const sortedTransactions = useMemo(() => {
+    return [...(transactions || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  }, [transactions])
+
   const { totalIncome, totalExpenses, netSavings, needsTotal, wantsTotal, savingsTotal, chartData } = useMemo(() => {
+    if (!transactions) {
+      return { totalIncome: 0, totalExpenses: 0, netSavings: 0, needsTotal: 0, wantsTotal: 0, savingsTotal: 0, chartData: [] };
+    }
     const income = transactions
       .filter((t) => t.type === "income")
       .reduce((acc, t) => acc + t.amount, 0)
@@ -89,7 +108,7 @@ export default function DashboardPage() {
         />
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <div className="xl:col-span-2">
-            <RecentTransactions transactions={transactions.slice(0, 10)} />
+            <RecentTransactions transactions={sortedTransactions.slice(0, 10)} />
           </div>
           <div className="row-start-1 lg:row-auto">
             <OverviewChart data={chartData} />
