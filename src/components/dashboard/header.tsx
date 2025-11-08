@@ -27,7 +27,7 @@ interface HeaderProps {
 }
 
 export function Header({ onAddTransaction }: HeaderProps) {
-  const user = useUser()
+  const { user } = useUser()
   const auth = useAuth()
   const router = useRouter()
 

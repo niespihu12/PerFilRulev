@@ -46,7 +46,7 @@ type SignupFormValues = z.infer<typeof signupSchema>
 export default function SignupPage() {
   const router = useRouter()
   const auth = useAuth()
-  const user = useUser()
+  const { user, isUserLoading } = useUser()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -60,10 +60,10 @@ export default function SignupPage() {
   })
 
   useEffect(() => {
-    if (user) {
+    if (!isUserLoading && user) {
       router.push('/dashboard')
     }
-  }, [user, router])
+  }, [user, isUserLoading, router])
 
   const handleSignup = async (data: SignupFormValues) => {
     if (auth) {
@@ -107,7 +107,7 @@ export default function SignupPage() {
     }
   }
 
-  if (user === undefined || user) {
+  if (isUserLoading || (!isUserLoading && user)) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

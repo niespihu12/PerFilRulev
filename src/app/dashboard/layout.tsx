@@ -11,19 +11,19 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const user = useUser()
+  const { user, isUserLoading } = useUser()
   const router = useRouter()
 
   useEffect(() => {
     // If the user is not defined (still loading) or is null (not logged in),
     // redirect to the login page.
-    if (user === null) {
+    if (!isUserLoading && !user) {
       router.push("/")
     }
-  }, [user, router])
+  }, [user, isUserLoading, router])
 
   // While the user state is loading, show a loading indicator.
-  if (user === undefined) {
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

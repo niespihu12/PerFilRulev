@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/firebase"
+import { useAuth, useUser } from "@/firebase"
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Logo } from "@/components/logo"
-import { useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 
@@ -41,7 +40,7 @@ type LoginFormValues = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const router = useRouter()
   const auth = useAuth()
-  const user = useUser()
+  const { user, isUserLoading } = useUser()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -54,10 +53,10 @@ export default function LoginPage() {
   })
 
   useEffect(() => {
-    if (user) {
+    if (!isUserLoading && user) {
       router.push("/dashboard")
     }
-  }, [user, router])
+  }, [user, isUserLoading, router])
 
   const handleLogin = async (data: LoginFormValues) => {
     if (auth) {
@@ -94,7 +93,7 @@ export default function LoginPage() {
     }
   }
   
-  if (user === undefined || user) {
+  if (isUserLoading || (!isUserLoading && user)) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
