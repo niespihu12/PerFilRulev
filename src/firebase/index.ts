@@ -7,14 +7,15 @@ import { getFirestore, Firestore } from 'firebase/firestore';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase(): { firebaseApp: FirebaseApp; auth: Auth; firestore: Firestore } {
-  if (getApps().length === 0) {
-    // Always initialize with the config object.
-    const firebaseApp = initializeApp(firebaseConfig);
-    return getSdks(firebaseApp);
-  } else {
-    // If already initialized, return the SDKs with the existing App
-    return getSdks(getApp());
-  }
+    let firebaseApp: FirebaseApp;
+    if (getApps().length === 0) {
+      firebaseApp = initializeApp(firebaseConfig);
+    } else {
+      firebaseApp = getApp();
+    }
+    const auth = getAuth(firebaseApp);
+    const firestore = getFirestore(firebaseApp);
+    return { firebaseApp, auth, firestore };
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
