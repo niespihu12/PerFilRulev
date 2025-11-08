@@ -1,7 +1,6 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
-import { DonutChart, ChartLegend, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { DonutChart, ChartLegend, ChartTooltip, ChartTooltipContent, type ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { Pie } from 'recharts';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { categoryIcons } from "../icons"
@@ -36,7 +35,10 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function OverviewChart({ data }: OverviewChartProps) {
-  const totalValue = data.reduce((acc, curr) => acc + curr.total, 0)
+  const totalValue = React.useMemo(() => {
+    return data.reduce((acc, curr) => acc + curr.total, 0)
+  }, [data])
+
 
   return (
     <Card className="flex flex-col h-full">
@@ -45,41 +47,43 @@ export function OverviewChart({ data }: OverviewChartProps) {
         <CardDescription>El desglose de tus gastos este mes</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <DonutChart
-          data={data}
-          category="total"
-          index="category"
-          valueFormatter={(value) => `$${value.toLocaleString()}`}
-          colors={["chart-1", "chart-2", "chart-3"]}
-          className="w-full"
+        <ChartContainer
           config={chartConfig}
+          className="mx-auto aspect-square h-full w-full max-w-[250px]"
         >
-          <ChartTooltip
-            cursor={false}
-            content={<ChartTooltipContent hideLabel />}
-          />
-          <Pie
-            dataKey="total"
-            nameKey="category"
-            innerRadius={100}
-            outerRadius={140}
-            labelLine={false}
+          <DonutChart
+            data={data}
+            category="total"
+            index="category"
+            valueFormatter={(value) => `$${value.toLocaleString()}`}
+            colors={["chart-1", "chart-2", "chart-3"]}
           >
-          </Pie>
-          <ChartLegend content={({ payload }) => {
-            if (!payload) return null;
-            return (
-              <div className="flex flex-col items-center justify-center gap-1 text-center">
-                <span className="text-2xl font-bold">
-                  ${totalValue.toLocaleString()}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  Total Gastado
-                </span>
-              </div>
-            );
-          }} className="-translate-y-1/2" />
-        </DonutChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Pie
+              data={data}
+              dataKey="total"
+              nameKey="category"
+              innerRadius={60}
+              strokeWidth={5}
+            >
+            </Pie>
+            <ChartLegend content={({ payload }) => {
+              return (
+                <div className="flex flex-col items-center justify-center gap-1 text-center">
+                  <span className="text-2xl font-bold">
+                    ${totalValue.toLocaleString()}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Total Gastado
+                  </span>
+                </div>
+              );
+            }} className="-translate-y-1/2" />
+          </DonutChart>
+        </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm pt-4">
         <div className="flex w-full items-center justify-center gap-4">
@@ -87,7 +91,7 @@ export function OverviewChart({ data }: OverviewChartProps) {
             const config = chartConfig[item.category];
             return (
             <div key={item.category} className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: `var(--color-${item.category})` }} />
               <span>{config.label}</span>
             </div>
           )})}
