@@ -10,7 +10,7 @@ import { updateProfile, updateEmail, updatePassword, reauthenticateWithCredentia
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Loader2 } from "lucide-react"
@@ -352,3 +352,5 @@ export default function SettingsPage() {
     </div>
   )
 }
+
+    
