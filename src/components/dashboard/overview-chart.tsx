@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { DonutChart, ChartLegend, ChartTooltip, ChartTooltipContent, type ChartConfig, ChartContainer } from "@/components/ui/chart"
 import { Pie } from 'recharts';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
