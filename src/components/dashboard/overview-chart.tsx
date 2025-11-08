@@ -1,7 +1,7 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { Donut, DonutChart, Legend, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { DonutChart, ChartLegend, ChartTooltip, ChartTooltipContent, type ChartConfig, Donut } from "@/components/ui/chart"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { categoryIcons } from "../icons"
 
@@ -70,7 +70,7 @@ export function OverviewChart({ data }: OverviewChartProps) {
             labelLine={false}
           >
           </Donut>
-          <Legend content={({ payload }) => {
+          <ChartLegend content={({ payload }) => {
             if (!payload) return null;
             return (
               <div className="flex flex-col items-center justify-center gap-1 text-center">
