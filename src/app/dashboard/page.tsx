@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { collection, query } from "firebase/firestore"
+import { collection, query, addDoc, serverTimestamp } from "firebase/firestore"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 
 import { Header } from "@/components/dashboard/header"
@@ -24,11 +24,24 @@ export default function DashboardPage() {
 
   const { data: transactions = [], isLoading } = useCollection<Transaction>(transactionsQuery)
 
-  const handleAddTransaction = (newTransaction: Omit<Transaction, 'id' | 'userId'>) => {
+  const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id' | 'userId'>) => {
     if (!user) return
-    // In a real app, you'd add this to Firestore.
-    // For now, we just update the local state.
-    console.log("New transaction added:", newTransaction)
+    
+    try {
+      const transactionsCol = collection(firestore, "users", user.uid, "transactions")
+      await addDoc(transactionsCol, { ...newTransaction, userId: user.uid, createdAt: serverTimestamp() })
+      toast({
+        title: "Transaction Added",
+        description: "Your transaction has been successfully added.",
+      })
+    } catch (error) {
+      console.error("Error adding transaction: ", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "There was an error adding your transaction.",
+      })
+    }
   }
 
   const sortedTransactions = useMemo(() => {
@@ -47,20 +60,20 @@ export default function DashboardPage() {
       .reduce((acc, t) => acc + t.amount, 0)
     
     const needs = transactions
-      .filter((t) => t.category === "Needs")
+      .filter((t) => t.type === "expense" && t.category === "Needs")
       .reduce((acc, t) => acc + t.amount, 0)
     const wants = transactions
-      .filter((t) => t.category === "Wants")
+      .filter((t) => t.type === "expense" && t.category === "Wants")
       .reduce((acc, t) => acc + t.amount, 0)
     const savings = transactions
-      .filter((t) => t.category === "Savings" && t.type === 'expense')
-      .reduce((acc, t) => acc + t.amount, 0) + (income - expenses)
+      .filter((t) => t.type === 'expense' && t.category === "Savings")
+      .reduce((acc, t) => acc + t.amount, 0) + (income)
 
 
     const chartData = [
-      { category: "Needs", total: needs, fill: "chart-1" },
-      { category: "Wants", total: wants, fill: "chart-2" },
-      { category: "Savings", total: savings, fill: "chart-3" },
+      { category: "Needs", total: needs, fill: "hsl(var(--chart-1))" },
+      { category: "Wants", total: wants, fill: "hsl(var(--chart-2))" },
+      { category: "Savings", total: savings, fill: "hsl(var(--chart-3))" },
     ].filter(item => item.total > 0);
 
     return {

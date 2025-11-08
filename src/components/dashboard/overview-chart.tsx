@@ -64,20 +64,6 @@ export function OverviewChart({ data }: OverviewChartProps) {
             innerRadius={100}
             outerRadius={140}
             labelLine={false}
-            label={({ payload, ...props }) => {
-                if (!payload || typeof payload.name !== 'string') {
-                    return null;
-                }
-                const category = payload.name as keyof typeof chartConfig;
-                const Icon = chartConfig[category]?.icon;
-                return Icon ? (
-                    <g
-                        transform={`translate(${props.cx}, ${props.cy})`}
-                    >
-                        <Icon style={{ color: props.fill }} />
-                    </g>
-                ) : null;
-            }}
           >
           </Pie>
           <ChartLegend content={({ payload }) => {
@@ -100,7 +86,7 @@ export function OverviewChart({ data }: OverviewChartProps) {
           {data.map((item) => {
             return (
             <div key={item.category} className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: `hsl(var(--${item.fill}))` }} />
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
               <span>{item.category}</span>
             </div>
           )})}
