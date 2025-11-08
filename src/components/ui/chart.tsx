@@ -317,7 +317,6 @@ const ChartLegendContent = React.forwardRef<
 ChartLegendContent.displayName = "ChartLegend"
 
 const DonutChart = RechartsPrimitive.PieChart
-const Donut = RechartsPrimitive.Pie
 
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
@@ -366,5 +365,4 @@ export {
   ChartLegendContent,
   ChartStyle,
   DonutChart,
-  Donut,
 }

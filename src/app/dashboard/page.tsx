@@ -39,9 +39,9 @@ export default function DashboardPage() {
 
 
     const chartData = [
-      { category: "Needs", total: needs, fill: "hsl(var(--chart-1))" },
-      { category: "Wants", total: wants, fill: "hsl(var(--chart-2))" },
-      { category: "Savings", total: savings, fill: "hsl(var(--chart-3))" },
+      { category: "Needs", total: needs, fill: "chart-1" },
+      { category: "Wants", total: wants, fill: "chart-2" },
+      { category: "Savings", total: savings, fill: "chart-3" },
     ].filter(item => item.total > 0);
 
     return {

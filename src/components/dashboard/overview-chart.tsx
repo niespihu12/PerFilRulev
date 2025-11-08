@@ -1,7 +1,8 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { DonutChart, ChartLegend, ChartTooltip, ChartTooltipContent, type ChartConfig, Donut } from "@/components/ui/chart"
+import { DonutChart, ChartLegend, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
+import { Pie } from 'recharts';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { categoryIcons } from "../icons"
 
@@ -49,7 +50,7 @@ export function OverviewChart({ data }: OverviewChartProps) {
           category="total"
           index="category"
           valueFormatter={(value) => `$${value.toLocaleString()}`}
-          colors={["Needs", "Wants", "Savings"]}
+          colors={["chart-1", "chart-2", "chart-3"]}
           className="w-full"
           config={chartConfig}
         >
@@ -57,19 +58,28 @@ export function OverviewChart({ data }: OverviewChartProps) {
             cursor={false}
             content={<ChartTooltipContent hideLabel />}
           />
-          <Donut
+          <Pie
             dataKey="total"
             nameKey="category"
             innerRadius={100}
             outerRadius={140}
-            label={({ payload, ...props }) => {
-              const category = payload.category as keyof typeof chartConfig;
-              const Icon = chartConfig[category]?.icon;
-              return Icon ? <Icon /> : null;
-            }}
             labelLine={false}
+            label={({ payload, ...props }) => {
+                if (!payload || typeof payload.name !== 'string') {
+                    return null;
+                }
+                const category = payload.name as keyof typeof chartConfig;
+                const Icon = chartConfig[category]?.icon;
+                return Icon ? (
+                    <g
+                        transform={`translate(${props.cx}, ${props.cy})`}
+                    >
+                        <Icon style={{ color: props.fill }} />
+                    </g>
+                ) : null;
+            }}
           >
-          </Donut>
+          </Pie>
           <ChartLegend content={({ payload }) => {
             if (!payload) return null;
             return (
@@ -88,10 +98,9 @@ export function OverviewChart({ data }: OverviewChartProps) {
       <CardFooter className="flex-col gap-2 text-sm pt-4">
         <div className="flex w-full items-center justify-center gap-4">
           {data.map((item) => {
-            const Icon = chartConfig[item.category as keyof typeof chartConfig].icon
             return (
             <div key={item.category} className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
+              <span className="size-2.5 rounded-full" style={{ backgroundColor: `hsl(var(--${item.fill}))` }} />
               <span>{item.category}</span>
             </div>
           )})}

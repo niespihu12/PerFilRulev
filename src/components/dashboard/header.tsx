@@ -3,28 +3,12 @@
 import Link from "next/link"
 import Image from "next/image"
 import {
-  Bell,
   CircleUser,
-  Home,
-  LineChart,
   Menu,
-  Package,
-  Package2,
-  Search,
-  ShoppingCart,
-  Users,
   PlusCircle,
 } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,17 +17,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { SidebarNav } from "./sidebar-nav"
+import { useAuth, useUser } from "@/firebase"
+import { useRouter } from "next/navigation"
 
 interface HeaderProps {
   onAddTransaction: () => void;
 }
 
 export function Header({ onAddTransaction }: HeaderProps) {
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+  const user = useUser()
+  const auth = useAuth()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    if (auth) {
+      await auth.signOut()
+      router.push("/")
+    }
+  }
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
@@ -71,14 +64,13 @@ export function Header({ onAddTransaction }: HeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
-              {userAvatar ? (
+              {user?.photoURL ? (
                 <Image
-                  src={userAvatar.imageUrl}
+                  src={user.photoURL}
                   width={40}
                   height={40}
                   alt="User avatar"
                   className="rounded-full"
-                  data-ai-hint={userAvatar.imageHint}
                 />
               ) : (
                 <CircleUser className="h-5 w-5" />
@@ -87,12 +79,12 @@ export function Header({ onAddTransaction }: HeaderProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
