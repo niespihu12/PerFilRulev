@@ -43,24 +43,24 @@ export default function DashboardLayout({
 
   return user ? (
     <>
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <aside className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <SidebarNav />
-        </div>
-      </aside>
-      <div className="flex flex-col">
-        <Header onAddTransaction={() => setAddTransactionOpen(true)} />
-        <main className="flex-1 overflow-auto p-4 lg:p-6">
+      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <aside className="hidden border-r bg-muted/40 md:block">
+          <div className="flex h-full max-h-screen flex-col gap-2">
+            <SidebarNav />
+          </div>
+        </aside>
+        <div className="flex flex-col">
+          <Header onAddTransaction={() => setAddTransactionOpen(true)} />
+          <main className="flex-1 overflow-auto p-4 lg:p-6">
             {children}
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
-    <AddTransactionDialog
-      isOpen={isAddTransactionOpen}
-      setIsOpen={setAddTransactionOpen}
-      onTransactionAdded={handleAddTransaction}
-    />
+      <AddTransactionDialog
+        isOpen={isAddTransactionOpen}
+        setIsOpen={setAddTransactionOpen}
+        onTransactionAdded={handleAddTransaction}
+      />
     </>
   ) : null
 }
