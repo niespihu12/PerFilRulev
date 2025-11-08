@@ -176,7 +176,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 h-screen overflow-y-auto">
       <div>
         <h1 className="text-2xl font-bold">Configuración</h1>
         <p className="text-muted-foreground">Gestiona la configuración de tu cuenta y presupuesto.</p>
@@ -269,17 +269,18 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Presupuesto 50/30/20</CardTitle>
-          <CardDescription>
-            Personaliza los porcentajes para tus necesidades, deseos y ahorros.
-            Asegúrate de que la suma sea 100%.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...settingsForm}>
-            <form onSubmit={settingsForm.handleSubmit(onBudgetSubmit)} className="space-y-8">
+      <Card className="flex flex-col h-[500px]">
+        <div className="overflow-y-auto flex-1 flex flex-col">
+          <CardHeader className="flex-shrink-0">
+            <CardTitle>Presupuesto 50/30/20</CardTitle>
+            <CardDescription>
+              Personaliza los porcentajes para tus necesidades, deseos y ahorros.
+              Asegúrate de que la suma sea 100%.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1">
+            <Form {...settingsForm}>
+              <form onSubmit={settingsForm.handleSubmit(onBudgetSubmit)} className="space-y-8">
               <FormField
                 control={settingsForm.control}
                 name="needsPercentage"
@@ -347,7 +348,8 @@ export default function SettingsPage() {
               <Button type="submit" disabled={totalPercentage !== 100}>Guardar Porcentajes</Button>
             </form>
           </Form>
-        </CardContent>
+          </CardContent>
+        </div>
       </Card>
     </div>
   )

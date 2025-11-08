@@ -1,121 +1,75 @@
 /**
- * @file Firebase Security Rules for PerFinRule application.
+ * @fileoverview Firestore Security Rules for PerFinRule application.
  *
- * @corePhilosophy This ruleset enforces a strict user-ownership model, ensuring that each user can only access their own data.
- * @dataStructure All data is nested under /users/{userId}, creating a clear hierarchy for access control. Transactions, rules, and configurations are stored as subcollections under each user.
- * @keySecurityDecisions User listing is disallowed. Data validation is relaxed to allow rapid prototyping, focusing on authorization and relational integrity checks only. Redundant 'userId' fields in subcollections are used to ensure authorization independence.
- * @denormalizationForAuthorization The 'userId' field is duplicated in the Transaction, Rule, and Configuration documents to enable direct authorization checks without needing to query the parent /users/{userId} document. This improves performance and simplifies the rules.
- * @structuralSegregation All user-specific data is kept under the /users/{userId} path, ensuring clear separation and preventing accidental public exposure.
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Users can only access their own profile data and the transactions associated with their user ID.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information. The userId must match the Firebase Auth UID.
+ * - /users/{userId}/transactions/{transactionId}: Stores transaction data for each user.
+ *
+ * Key Security Decisions:
+ * - Users can only create, read, update, and delete their own transactions.
+ * - User listing is disallowed to prevent information disclosure.
+ *
+ * Denormalization for Authorization:
+ *   - The userId field in the Transaction document duplicates the path-based ownership. This ensures data consistency and allows for future flexibility if the data structure changes.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secures the /users/{userId} document, ensuring only the authenticated user can access their own profile.
+     * @description Protects user profile data. Only the user with the matching UID can read or write their own profile.
      * @path /users/{userId}
-     * @allow (create) User with UID 'user_abc' can create their profile document if request.auth.uid == 'user_abc'.
-     * @allow (get) User with UID 'user_abc' can read their own profile document.
-     * @allow (update) User with UID 'user_abc' can update their own profile document.
-     * @allow (delete) User with UID 'user_abc' can delete their own profile document.
-     * @deny (create) User with UID 'user_xyz' cannot create a profile document for 'user_abc'.
-     * @deny (get) User with UID 'user_xyz' cannot read the profile document of 'user_abc'.
-     * @deny (update) User with UID 'user_xyz' cannot update the profile document of 'user_abc'.
-     * @deny (delete) User with UID 'user_xyz' cannot delete the profile document of 'user_abc'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) User 'user_abc' with matching UID creates their profile.
+     *   request.auth.uid == 'user_abc' and request.resource.data.id == 'user_abc'
+     * @allow (get, update, delete) User 'user_abc' reads/updates/deletes their own profile.
+     *   request.auth.uid == 'user_abc' and resource.data.id == 'user_abc'
+     * @deny (create) User 'user_abc' attempts to create a profile for another user 'user_xyz'.
+     *   request.auth.uid == 'user_abc' and request.resource.data.id == 'user_xyz'
+     * @deny (get, update, delete) User 'user_abc' attempts to read/update/delete another user 'user_xyz' profile.
+     *   request.auth.uid == 'user_abc' and resource.data.id == 'user_xyz'
+     * @principle Enforces strict user-ownership and relational integrity for user profiles.
      */
     match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
       allow get: if isOwner(userId);
-      allow list: if false; // User listing is not allowed.
-      allow create: if isSignedIn() && isSelfCreation(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow list: if false; // User listing is not permitted.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && resource.data.id == userId;
+      allow delete: if isOwner(userId) && resource.data.id == userId;
     }
 
     /**
-     * @description Secures the /users/{userId}/transactions/{transactionId} collection, ensuring only the owner can access their transactions.
+     * @description Protects transaction data for each user. Only the owning user can create, read, update, and delete transactions under their user ID.
      * @path /users/{userId}/transactions/{transactionId}
-     * @allow (create) User with UID 'user_abc' can create a transaction if request.resource.data.userId == 'user_abc'.
-     * @allow (get) User with UID 'user_abc' can read their own transaction with transactionId 'tx_123'.
-     * @allow (list) User with UID 'user_abc' can list their own transactions.
-     * @allow (update) User with UID 'user_abc' can update their own transaction with transactionId 'tx_123'.
-     * @allow (delete) User with UID 'user_abc' can delete their own transaction with transactionId 'tx_123'.
-     * @deny (create) User with UID 'user_xyz' cannot create a transaction for 'user_abc'.
-     * @deny (get) User with UID 'user_xyz' cannot read the transaction of 'user_abc'.
-     * @deny (list) User with UID 'user_xyz' cannot list the transactions of 'user_abc'.
-     * @deny (update) User with UID 'user_xyz' cannot update the transaction of 'user_abc'.
-     * @deny (delete) User with UID 'user_xyz' cannot delete the transaction of 'user_abc'.
-     * @principle Enforces document ownership for all operations.  Validates relational integrity on create.
+     * @allow (create) User 'user_abc' creates a transaction under their user ID.
+     *   request.auth.uid == 'user_abc' and request.resource.data.userId == 'user_abc'
+     * @allow (get, update, delete) User 'user_abc' reads/updates/deletes a transaction under their user ID.
+     *   request.auth.uid == 'user_abc' and resource.data.userId == 'user_abc'
+     * @allow (list) User 'user_abc' lists transactions under their user ID.
+     *   request.auth.uid == 'user_abc'
+     * @deny (create) User 'user_abc' attempts to create a transaction for another user 'user_xyz'.
+     *   request.auth.uid == 'user_abc' and request.resource.data.userId == 'user_xyz'
+     * @deny (get, update, delete) User 'user_abc' attempts to read/update/delete a transaction for another user 'user_xyz'.
+     *   request.auth.uid == 'user_abc' and resource.data.userId == 'user_xyz'
+     * @principle Enforces strict user-ownership for transactions and relational integrity between user and transaction data.
      */
     match /users/{userId}/transactions/{transactionId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+       function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isSignedIn() && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && resource.data.userId == request.resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
     }
-
-    /**
-     * @description Secures the /users/{userId}/rules/{ruleId} collection, ensuring only the owner can manage their rules.
-     * @path /users/{userId}/rules/{ruleId}
-     * @allow (create) User with UID 'user_abc' can create a rule if request.resource.data.userId == 'user_abc'.
-     * @allow (get) User with UID 'user_abc' can read their own rule with ruleId 'rule_123'.
-     * @allow (list) User with UID 'user_abc' can list their own rules.
-     * @allow (update) User with UID 'user_abc' can update their own rule with ruleId 'rule_123'.
-     * @allow (delete) User with UID 'user_abc' can delete their own rule with ruleId 'rule_123'.
-     * @deny (create) User with UID 'user_xyz' cannot create a rule for 'user_abc'.
-     * @deny (get) User with UID 'user_xyz' cannot read the rule of 'user_abc'.
-     * @deny (list) User with UID 'user_xyz' cannot list the rules of 'user_abc'.
-     * @deny (update) User with UID 'user_xyz' cannot update the rule of 'user_abc'.
-     * @deny (delete) User with UID 'user_xyz' cannot delete the rule of 'user_abc'.
-     * @principle Enforces document ownership for all operations. Validates relational integrity on create.
-     */
-    match /users/{userId}/rules/{ruleId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && resource.data.userId == request.resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Secures the /users/{userId}/configuration/{configurationId} collection, ensuring only the owner can manage their configurations.
-     * @path /users/{userId}/configuration/{configurationId}
-     * @allow (create) User with UID 'user_abc' can create a configuration if request.resource.data.userId == 'user_abc'.
-     * @allow (get) User with UID 'user_abc' can read their own configuration with configurationId 'config_123'.
-     * @allow (list) User with UID 'user_abc' can list their own configurations.
-     * @allow (update) User with UID 'user_abc' can update their own configuration with configurationId 'config_123'.
-     * @allow (delete) User with UID 'user_abc' can delete their own configuration with configurationId 'config_123'.
-     * @deny (create) User with UID 'user_xyz' cannot create a configuration for 'user_abc'.
-     * @deny (get) User with UID 'user_xyz' cannot read the configuration of 'user_abc'.
-     * @deny (list) User with UID 'user_xyz' cannot list the configurations of 'user_abc'.
-     * @deny (update) User with UID 'user_xyz' cannot update the configuration of 'user_abc'.
-     * @deny (delete) User with UID 'user_xyz' cannot delete the configuration of 'user_abc'.
-     * @principle Enforces document ownership for all operations. Validates relational integrity on create.
-     */
-    match /users/{userId}/configuration/{configurationId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && resource.data.userId == request.resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-  }
-
-  // Helper functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
-  }
-
-  function isSelfCreation(userId) {
-    return isSignedIn() && request.auth.uid == userId;
   }
 }

@@ -8,7 +8,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the User entity."
+          "description": "Unique identifier for the user entity."
         },
         "email": {
           "type": "string",
@@ -18,18 +18,11 @@
         "name": {
           "type": "string",
           "description": "User's display name."
-        },
-        "creationDate": {
-          "type": "string",
-          "description": "Date when the user account was created.",
-          "format": "date-time"
         }
       },
       "required": [
         "id",
-        "email",
-        "name",
-        "creationDate"
+        "email"
       ]
     },
     "Transaction": {
@@ -40,7 +33,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Transaction entity."
+          "description": "Unique identifier for the transaction entity."
         },
         "userId": {
           "type": "string",
@@ -48,24 +41,20 @@
         },
         "amount": {
           "type": "number",
-          "description": "Amount of the transaction."
+          "description": "The amount of the transaction."
         },
         "date": {
           "type": "string",
-          "description": "Date of the transaction.",
+          "description": "The date of the transaction.",
           "format": "date-time"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the transaction."
         },
         "category": {
           "type": "string",
-          "description": "Category of the transaction (Needs, Wants, Savings)."
+          "description": "The category of the transaction (Needs, Wants, Savings)."
         },
-        "transactionType": {
+        "description": {
           "type": "string",
-          "description": "Type of the transaction (income or expense)."
+          "description": "A description of the transaction."
         }
       },
       "required": [
@@ -73,93 +62,14 @@
         "userId",
         "amount",
         "date",
-        "description",
-        "category",
-        "transactionType"
-      ]
-    },
-    "Rule": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Rule",
-      "type": "object",
-      "description": "Represents rules for categorizing transactions.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Rule entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Rule)"
-        },
-        "descriptionKeywords": {
-          "type": "array",
-          "description": "Keywords in the transaction description.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "category": {
-          "type": "string",
-          "description": "The transaction category."
-        },
-        "lowerAmount": {
-          "type": "number",
-          "description": "The lowest amount to categorize."
-        },
-        "upperAmount": {
-          "type": "number",
-          "description": "The highest amount to categorize."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "descriptionKeywords",
         "category"
-      ]
-    },
-    "Configuration": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Configuration",
-      "type": "object",
-      "description": "Represents user-specific configurations.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Configuration entity."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:1 Configuration)"
-        },
-        "needsPercentage": {
-          "type": "number",
-          "description": "Percentage allocated to needs (50%)."
-        },
-        "wantsPercentage": {
-          "type": "number",
-          "description": "Percentage allocated to wants (30%)."
-        },
-        "savingsPercentage": {
-          "type": "number",
-          "description": "Percentage allocated to savings (20%)."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "needsPercentage",
-        "wantsPercentage",
-        "savingsPercentage"
       ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous",
-      "google.com"
+      "anonymous"
     ]
   },
   "firestore": {
@@ -167,15 +77,15 @@
       {
         "path": "/users/{userId}",
         "definition": {
-          "entityName": "User",
+          "entityName": "user",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles. Allows access only to the authenticated user's profile.",
+          "description": "Stores user profile information. The 'userId' parameter is the unique identifier for the user, matching the Firebase Auth UID.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
+              "description": "The Firebase Auth UID of the user."
             }
           ]
         }
@@ -183,64 +93,24 @@
       {
         "path": "/users/{userId}/transactions/{transactionId}",
         "definition": {
-          "entityName": "Transaction",
+          "entityName": "transaction",
           "schema": {
             "$ref": "#/backend/entities/Transaction"
           },
-          "description": "Stores transaction data for each user. Includes denormalized 'userId' for authorization independence.",
+          "description": "Stores transaction data for each user. Path-based ownership ensures that a user can only access transactions under their own user ID.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
+              "description": "The Firebase Auth UID of the user who owns the transaction."
             },
             {
               "name": "transactionId",
-              "description": "The unique identifier of the transaction."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/rules/{ruleId}",
-        "definition": {
-          "entityName": "Rule",
-          "schema": {
-            "$ref": "#/backend/entities/Rule"
-          },
-          "description": "Stores rules for each user. Includes denormalized 'userId' for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "ruleId",
-              "description": "The unique identifier of the rule."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/configuration/{configurationId}",
-        "definition": {
-          "entityName": "Configuration",
-          "schema": {
-            "$ref": "#/backend/entities/Configuration"
-          },
-          "description": "Stores user configurations. Includes denormalized 'userId' for authorization independence.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "configurationId",
-              "description": "The unique identifier of the configuration."
+              "description": "Unique identifier for the transaction."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure data isolation and ease of security rule implementation, adhering to Authorization Independence principles. Each user's data is stored under their respective user ID, preventing unauthorized access and simplifying security rules.\n\n*   **Users:** User profiles are stored in the `/users/{userId}` collection. This structure enables straightforward user authentication and management, with security rules configured to allow each user to access only their profile data.\n*   **Transactions:** Transactions are stored in the `/users/{userId}/transactions/{transactionId}` collection. This path-based ownership isolates user data, making security rules simple and efficient. The `userId` field inside each transaction document is redundant but critical for authorization independence. Security rules will enforce that the `userId` in the document matches the `userId` in the path.\n*   **Rules:** Rules for categorizing transactions are stored in the `/users/{userId}/rules/{ruleId}` collection. Similar to transactions, rules are user-specific, ensuring data isolation and simplified security rule implementation. The `userId` field inside each rule document is redundant but critical for authorization independence. Security rules will enforce that the `userId` in the document matches the `userId` in the path.\n*   **Configurations:** User configurations are stored in the `/users/{userId}/configuration/{configurationId}` collection, ensuring that configuration data is specific to each user. The `userId` field inside each configuration document is redundant but critical for authorization independence. Security rules will enforce that the `userId` in the document matches the `userId` in the path.\n\nThis structure supports QAPs (Rules are not Filters) because list operations are scoped to the user's data, and security rules can efficiently filter based on the path (`/users/{userId}`). The membership model is not applicable here, as the application focuses on personal financial management rather than collaborative data. The structure is designed for single-user access to their data, with clear ownership enforced through path-based access and redundant `userId` fields in subcollections for authorization independence."
+    "reasoning": "The Firestore structure is designed to ensure data security and follows the principle of authorization independence. Each user has their own collection of transactions, ensuring they can only access their own data. The `userId` field within the `transactions` collection is present for data consistency. No denormalization is needed since access to the transactions is determined by the path.  The path-based ownership enables efficient and secure `list` operations, thus supporting QAPs.  A naming convention helps maintain a consistent and predictable structure."
   }
 }
