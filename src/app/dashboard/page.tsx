@@ -22,7 +22,7 @@ export default function DashboardPage() {
     user ? query(collection(firestore, "users", user.uid, "transactions")) : null
   , [firestore, user]);
 
-  const { data: transactions = [], isLoading } = useCollection<Transaction>(transactionsQuery)
+  const { data: transactions, isLoading } = useCollection<Transaction>(transactionsQuery)
 
   const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id' | 'userId'>) => {
     if (!user) return
@@ -45,7 +45,8 @@ export default function DashboardPage() {
   }
 
   const sortedTransactions = useMemo(() => {
-    return [...(transactions || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    if (!transactions) return []
+    return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [transactions])
 
   const { totalIncome, totalExpenses, netSavings, needsTotal, wantsTotal, savingsTotal, chartData } = useMemo(() => {

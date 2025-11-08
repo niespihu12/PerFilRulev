@@ -19,9 +19,10 @@ export default function TransactionsPage() {
     [firestore, user]
   );
 
-  const { data: transactions = [], isLoading } = useCollection<Transaction>(transactionsQuery);
+  const { data: transactions, isLoading } = useCollection<Transaction>(transactionsQuery);
 
   const sortedTransactions = useMemo(() => {
+    if (!transactions) return [];
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions]);
 
