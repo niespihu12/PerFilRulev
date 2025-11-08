@@ -1,0 +1,101 @@
+"use client"
+
+import Link from "next/link"
+import Image from "next/image"
+import {
+  Bell,
+  CircleUser,
+  Home,
+  LineChart,
+  Menu,
+  Package,
+  Package2,
+  Search,
+  ShoppingCart,
+  Users,
+  PlusCircle,
+} from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { PlaceHolderImages } from "@/lib/placeholder-images"
+import { SidebarNav } from "./sidebar-nav"
+
+interface HeaderProps {
+  onAddTransaction: () => void;
+}
+
+export function Header({ onAddTransaction }: HeaderProps) {
+  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
+  return (
+    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="icon" className="shrink-0 md:hidden">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle navigation menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="flex flex-col p-0">
+          <SidebarNav />
+        </SheetContent>
+      </Sheet>
+      <div className="w-full flex-1">
+        <h1 className="text-lg font-semibold md:text-2xl font-headline">Dashboard</h1>
+      </div>
+      <div className="flex items-center gap-4">
+        <Button onClick={onAddTransaction} size="sm" className="gap-1">
+          <PlusCircle className="h-4 w-4" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            Add Transaction
+          </span>
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="rounded-full">
+              {userAvatar ? (
+                <Image
+                  src={userAvatar.imageUrl}
+                  width={40}
+                  height={40}
+                  alt="User avatar"
+                  className="rounded-full"
+                  data-ai-hint={userAvatar.imageHint}
+                />
+              ) : (
+                <CircleUser className="h-5 w-5" />
+              )}
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  )
+}
