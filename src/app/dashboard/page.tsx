@@ -1,19 +1,16 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { collection, query, addDoc, serverTimestamp } from "firebase/firestore"
+import { collection, query } from "firebase/firestore"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 
-import { Header } from "@/components/dashboard/header"
 import { StatCards } from "@/components/dashboard/stat-cards"
 import { OverviewChart } from "@/components/dashboard/overview-chart"
 import { RecentTransactions } from "@/components/dashboard/recent-transactions"
-import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog"
 import { type Transaction } from "@/lib/types"
 import { useToast } from "@/hooks/use-toast"
 
 export default function DashboardPage() {
-  const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
   const { toast } = useToast()
   const firestore = useFirestore()
   const { user } = useUser()
@@ -23,13 +20,6 @@ export default function DashboardPage() {
   , [firestore, user]);
 
   const { data: transactions, isLoading } = useCollection<Transaction>(transactionsQuery)
-
-  const handleAddTransaction = (newTransaction: Transaction) => {
-    // This function is now just to optimistically update the UI.
-    // The actual Firebase write is in AddTransactionDialog.
-    // We can enhance this to update the local state if needed.
-    // For now, we rely on the real-time listener to update the UI.
-  }
 
   const sortedTransactions = useMemo(() => {
     if (!transactions) return []
@@ -101,28 +91,20 @@ export default function DashboardPage() {
 
 
   return (
-    <>
-      <Header onAddTransaction={() => setAddTransactionOpen(true)} />
-      <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
-        <StatCards
-          totalIncome={totalIncome}
-          totalExpenses={totalExpenses}
-          netSavings={netSavings}
-        />
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-          <div className="xl:col-span-2">
-            <RecentTransactions transactions={sortedTransactions.slice(0, 10)} />
-          </div>
-          <div className="row-start-1 lg:row-auto">
-            <OverviewChart data={chartData} />
-          </div>
-        </div>
-      </main>
-      <AddTransactionDialog
-        isOpen={isAddTransactionOpen}
-        setIsOpen={setAddTransactionOpen}
-        onTransactionAdded={handleAddTransaction}
+    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+      <StatCards
+        totalIncome={totalIncome}
+        totalExpenses={totalExpenses}
+        netSavings={netSavings}
       />
-    </>
+      <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <RecentTransactions transactions={sortedTransactions.slice(0, 10)} />
+        </div>
+        <div className="row-start-1 lg:row-auto">
+          <OverviewChart data={chartData} />
+        </div>
+      </div>
+    </main>
   )
 }

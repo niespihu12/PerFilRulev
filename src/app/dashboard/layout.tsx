@@ -1,10 +1,14 @@
 "use client"
 
+import { useState } from "react"
 import { SidebarNav } from "@/components/dashboard/sidebar-nav"
 import { useUser } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Loader2 } from "lucide-react"
+import { Header } from "@/components/dashboard/header"
+import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog"
+import { type Transaction } from "@/lib/types"
 
 export default function DashboardLayout({
   children,
@@ -13,6 +17,7 @@ export default function DashboardLayout({
 }) {
   const { user, isUserLoading } = useUser()
   const router = useRouter()
+  const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -28,7 +33,12 @@ export default function DashboardLayout({
     )
   }
 
+  const handleAddTransaction = (newTransaction: Transaction) => {
+    // This is a placeholder, actual logic is in the dialog.
+  }
+
   return user ? (
+    <>
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
@@ -36,8 +46,15 @@ export default function DashboardLayout({
         </div>
       </aside>
       <div className="flex flex-col">
+        <Header onAddTransaction={() => setAddTransactionOpen(true)} />
         {children}
       </div>
     </div>
+    <AddTransactionDialog
+      isOpen={isAddTransactionOpen}
+      setIsOpen={setAddTransactionOpen}
+      onTransactionAdded={handleAddTransaction}
+    />
+    </>
   ) : null
 }

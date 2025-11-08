@@ -52,7 +52,7 @@ export function Header({ onAddTransaction }: HeaderProps) {
         </SheetContent>
       </Sheet>
       <div className="w-full flex-1">
-        <h1 className="text-lg font-semibold md:text-2xl font-headline">Panel de Control</h1>
+        
       </div>
       <div className="flex items-center gap-4">
         <Button onClick={onAddTransaction} size="sm" className="gap-1">
