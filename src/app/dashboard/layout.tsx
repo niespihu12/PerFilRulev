@@ -1,10 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SidebarNav } from "@/components/dashboard/sidebar-nav"
 import { useUser } from "@/firebase"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { Loader2 } from "lucide-react"
 import { Header } from "@/components/dashboard/header"
 import { AddTransactionDialog } from "@/components/dashboard/add-transaction-dialog"
@@ -18,6 +17,11 @@ export default function DashboardLayout({
   const { user, isUserLoading } = useUser()
   const router = useRouter()
   const [isAddTransactionOpen, setAddTransactionOpen] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -25,7 +29,7 @@ export default function DashboardLayout({
     }
   }, [user, isUserLoading, router])
 
-  if (isUserLoading) {
+  if (!isClient || isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
