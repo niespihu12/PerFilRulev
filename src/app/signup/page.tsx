@@ -36,9 +36,9 @@ import { Logo } from '@/components/logo'
 import { Loader2 } from 'lucide-react'
 
 const signupSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Please enter a valid email address.'),
-  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres.'),
+  email: z.string().email('Por favor, introduce una dirección de correo electrónico válida.'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres.'),
 })
 
 type SignupFormValues = z.infer<typeof signupSchema>
@@ -81,8 +81,8 @@ export default function SignupPage() {
       } catch (error: any) {
         toast({
           variant: 'destructive',
-          title: 'Sign Up Failed',
-          description: error.message || 'An unexpected error occurred.',
+          title: 'Registro Fallido',
+          description: 'No se pudo crear la cuenta. Por favor, inténtalo de nuevo.',
         })
       } finally {
         setIsLoading(false)
@@ -97,11 +97,11 @@ export default function SignupPage() {
         await signInWithPopup(auth, provider)
         router.push('/dashboard')
       } catch (error) {
-        console.error('Error signing in with Google', error)
+        console.error('Error al registrarse con Google', error)
         toast({
           variant: 'destructive',
-          title: 'Sign Up Failed',
-          description: 'Could not sign in with Google. Please try again.',
+          title: 'Registro Fallido',
+          description: 'No se pudo registrar con Google. Por favor, inténtalo de nuevo.',
         })
       }
     }
@@ -122,9 +122,9 @@ export default function SignupPage() {
           <div className="mb-4 flex justify-center">
             <Logo />
           </div>
-          <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
+          <CardTitle className="text-2xl font-headline">Crear una Cuenta</CardTitle>
           <CardDescription>
-            Enter your information to get started with your financial dashboard.
+            Introduce tu información para empezar a usar tu panel financiero.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -135,7 +135,7 @@ export default function SignupPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Nombre</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
@@ -148,11 +148,11 @@ export default function SignupPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Correo Electrónico</FormLabel>
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="m@ejemplo.com"
                         {...field}
                       />
                     </FormControl>
@@ -165,7 +165,7 @@ export default function SignupPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Contraseña</FormLabel>
                     <FormControl>
                       <Input type="password" {...field} />
                     </FormControl>
@@ -174,7 +174,7 @@ export default function SignupPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                 {isLoading ? <Loader2 className="animate-spin" /> : "Sign Up"}
+                 {isLoading ? <Loader2 className="animate-spin" /> : "Regístrate"}
               </Button>
             </form>
           </Form>
@@ -184,7 +184,7 @@ export default function SignupPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                O continuar con
               </span>
             </div>
           </div>
@@ -193,9 +193,9 @@ export default function SignupPage() {
             Google
           </Button>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            ¿Ya tienes una cuenta?{" "}
             <Link href="/" className="underline">
-              Login
+              Iniciar Sesión
             </Link>
           </div>
         </CardContent>

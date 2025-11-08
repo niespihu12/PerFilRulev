@@ -44,7 +44,7 @@ export function Header({ onAddTransaction }: HeaderProps) {
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0 md:hidden">
             <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle navigation menu</span>
+            <span className="sr-only">Alternar menú de navegación</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col p-0">
@@ -52,13 +52,13 @@ export function Header({ onAddTransaction }: HeaderProps) {
         </SheetContent>
       </Sheet>
       <div className="w-full flex-1">
-        <h1 className="text-lg font-semibold md:text-2xl font-headline">Dashboard</h1>
+        <h1 className="text-lg font-semibold md:text-2xl font-headline">Panel de Control</h1>
       </div>
       <div className="flex items-center gap-4">
         <Button onClick={onAddTransaction} size="sm" className="gap-1">
           <PlusCircle className="h-4 w-4" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Add Transaction
+            Agregar Transacción
           </span>
         </Button>
         <DropdownMenu>
@@ -69,22 +69,21 @@ export function Header({ onAddTransaction }: HeaderProps) {
                   src={user.photoURL}
                   width={40}
                   height={40}
-                  alt="User avatar"
+                  alt="Avatar de usuario"
                   className="rounded-full"
                 />
               ) : (
                 <CircleUser className="h-5 w-5" />
               )}
-              <span className="sr-only">Toggle user menu</span>
+              <span className="sr-only">Alternar menú de usuario</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.displayName || 'My Account'}</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.displayName || 'Mi Cuenta'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/settings">Configuración</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Cerrar Sesión</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

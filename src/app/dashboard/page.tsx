@@ -24,24 +24,11 @@ export default function DashboardPage() {
 
   const { data: transactions, isLoading } = useCollection<Transaction>(transactionsQuery)
 
-  const handleAddTransaction = async (newTransaction: Omit<Transaction, 'id' | 'userId'>) => {
-    if (!user) return
-    
-    try {
-      const transactionsCol = collection(firestore, "users", user.uid, "transactions")
-      await addDoc(transactionsCol, { ...newTransaction, userId: user.uid, createdAt: serverTimestamp() })
-      toast({
-        title: "Transaction Added",
-        description: "Your transaction has been successfully added.",
-      })
-    } catch (error) {
-      console.error("Error adding transaction: ", error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "There was an error adding your transaction.",
-      })
-    }
+  const handleAddTransaction = (newTransaction: Transaction) => {
+    // This function is now just to optimistically update the UI.
+    // The actual Firebase write is in AddTransactionDialog.
+    // We can enhance this to update the local state if needed.
+    // For now, we rely on the real-time listener to update the UI.
   }
 
   const sortedTransactions = useMemo(() => {
@@ -66,10 +53,12 @@ export default function DashboardPage() {
     const wants = transactions
       .filter((t) => t.type === "expense" && t.category === "Wants")
       .reduce((acc, t) => acc + t.amount, 0)
-    const savings = transactions
+    
+    const savingsFromExpenses = transactions
       .filter((t) => t.type === 'expense' && t.category === "Savings")
-      .reduce((acc, t) => acc + t.amount, 0) + (income)
+      .reduce((acc, t) => acc + t.amount, 0);
 
+    const savings = savingsFromExpenses + (income - (needs + wants + savingsFromExpenses))
 
     const chartData = [
       { category: "Needs", total: needs, fill: "hsl(var(--chart-1))" },
@@ -96,15 +85,15 @@ export default function DashboardPage() {
       if (needsPercentage > 50) {
         toast({
           variant: "destructive",
-          title: "Budget Alert: Needs",
-          description: `You've spent ${needsPercentage.toFixed(0)}% of your income on needs, which is over the 50% recommendation.`,
+          title: "Alerta de Presupuesto: Necesidades",
+          description: `Has gastado el ${needsPercentage.toFixed(0)}% de tus ingresos en necesidades, superando la recomendación del 50%.`,
         })
       }
       if (wantsPercentage > 30) {
         toast({
           variant: "destructive",
-          title: "Budget Alert: Wants",
-          description: `You've spent ${wantsPercentage.toFixed(0)}% of your income on wants, which is over the 30% recommendation.`,
+          title: "Alerta de Presupuesto: Deseos",
+          description: `Has gastado el ${wantsPercentage.toFixed(0)}% de tus ingresos en deseos, superando la recomendación del 30%.`,
         })
       }
     }

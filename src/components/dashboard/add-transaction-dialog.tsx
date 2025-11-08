@@ -6,6 +6,7 @@ import * as z from "zod"
 import { useState, useTransition } from "react"
 import { CalendarIcon, Loader2, Sparkles } from "lucide-react"
 import { format } from "date-fns"
+import { es } from "date-fns/locale"
 import { collection, addDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 
@@ -38,21 +39,20 @@ import {
 } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
-import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { automaticTransactionCategorization } from "@/ai/flows/automatic-transaction-categorization"
 import { useToast } from "@/hooks/use-toast"
 import { type Transaction } from "@/lib/types"
 
 const transactionFormSchema = z.object({
-  description: z.string().min(2, "Description must be at least 2 characters."),
-  amount: z.coerce.number().positive("Amount must be a positive number."),
+  description: z.string().min(2, "La descripción debe tener al menos 2 caracteres."),
+  amount: z.coerce.number().positive("El monto debe ser un número positivo."),
   type: z.enum(["income", "expense"], {
-    required_error: "You need to select a transaction type.",
+    required_error: "Debes seleccionar un tipo de transacción.",
   }),
   category: z.enum(["Needs", "Wants", "Savings"]),
   date: z.date({
-    required_error: "A date is required.",
+    required_error: "La fecha es obligatoria.",
   }),
 })
 
@@ -61,7 +61,7 @@ type TransactionFormValues = z.infer<typeof transactionFormSchema>
 interface AddTransactionDialogProps {
   isOpen: boolean
   setIsOpen: (isOpen: boolean) => void
-  onTransactionAdded: (transaction: Omit<Transaction, 'id' | 'userId'>) => void
+  onTransactionAdded: (transaction: Transaction) => void
 }
 
 export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: AddTransactionDialogProps) {
@@ -90,24 +90,33 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
     if (!description || amount <= 0) {
       toast({
         variant: "destructive",
-        title: "Missing Information",
-        description: "Please enter a valid description and amount to use AI categorization.",
+        title: "Información Faltante",
+        description: "Por favor, introduce una descripción y un monto válidos para usar la categorización con IA.",
       })
       return
     }
 
     startAiTransition(async () => {
       setAiExplanation(null)
-      const result = await automaticTransactionCategorization({
-        transactionDescription: description,
-        transactionAmount: Number(amount),
-      })
-      if (result) {
-        form.setValue("category", result.category)
-        setAiExplanation(result.explanation)
+      try {
+        const result = await automaticTransactionCategorization({
+          transactionDescription: description,
+          transactionAmount: Number(amount),
+        })
+        if (result) {
+          form.setValue("category", result.category)
+          setAiExplanation(result.explanation)
+          toast({
+            title: "Categorización con IA Completa",
+            description: `Transacción sugerida como '${result.category}'.`,
+          })
+        }
+      } catch (error) {
+        console.error("Error en la categorización con IA:", error)
         toast({
-          title: "AI Categorization Complete",
-          description: `Transaction suggested as '${result.category}'.`,
+          variant: "destructive",
+          title: "Error de IA",
+          description: "No se pudo categorizar la transacción. Por favor, inténtalo de nuevo.",
         })
       }
     })
@@ -117,13 +126,13 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Authentication Error",
-        description: "You must be logged in to add a transaction.",
+        title: "Error de Autenticación",
+        description: "Debes iniciar sesión para agregar una transacción.",
       })
       return
     }
     
-    const newTransaction = {
+    const newTransactionData = {
       ...data,
       date: data.date.toISOString(),
       category: data.type === 'income' ? 'Savings' : data.category,
@@ -131,23 +140,28 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
     }
 
     try {
-      const transactionsCol = collection(firestore, "users", user.uid, "transactions")
-      await addDoc(transactionsCol, newTransaction)
+      // The addDoc function returns a DocumentReference to the newly created document.
+      const docRef = await addDoc(collection(firestore, "users", user.uid, "transactions"), newTransactionData)
       
-      onTransactionAdded(newTransaction)
+      const finalTransaction: Transaction = {
+        ...newTransactionData,
+        id: docRef.id, // Use the ID from the returned DocumentReference
+      }
+      
+      onTransactionAdded(finalTransaction)
       form.reset()
       setAiExplanation(null)
       setIsOpen(false)
       toast({
-        title: "Transaction Added",
-        description: `${data.description} was successfully added.`,
+        title: "Transacción Agregada",
+        description: `${data.description} se agregó correctamente.`,
       })
     } catch(error) {
-      console.error("Error adding transaction:", error)
+      console.error("Error al agregar la transacción:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Could not add transaction. Please try again.",
+        description: "No se pudo agregar la transacción. Por favor, inténtalo de nuevo.",
       })
     }
   }
@@ -156,9 +170,9 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Add Transaction</DialogTitle>
+          <DialogTitle>Agregar Transacción</DialogTitle>
           <DialogDescription>
-            Record a new income or expense. Fill in the details below.
+            Registra un nuevo ingreso o gasto. Rellena los detalles a continuación.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -168,9 +182,9 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Descripción</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Groceries from Walmart" {...field} />
+                    <Input placeholder="ej. Comida en el supermercado" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -183,7 +197,7 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Monto</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="0.00" {...field} />
                     </FormControl>
@@ -196,7 +210,7 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Fecha</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -208,9 +222,9 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP")
+                              format(field.value, "PPP", { locale: es })
                             ) : (
-                              <span>Pick a date</span>
+                              <span>Elige una fecha</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -225,6 +239,7 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                             date > new Date() || date < new Date("1900-01-01")
                           }
                           initialFocus
+                          locale={es}
                         />
                       </PopoverContent>
                     </Popover>
@@ -239,7 +254,7 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
               name="type"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Type</FormLabel>
+                  <FormLabel>Tipo</FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -250,13 +265,13 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                         <FormControl>
                           <RadioGroupItem value="expense" />
                         </FormControl>
-                        <FormLabel className="font-normal">Expense</FormLabel>
+                        <FormLabel className="font-normal">Gasto</FormLabel>
                       </FormItem>
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
                           <RadioGroupItem value="income" />
                         </FormControl>
-                        <FormLabel className="font-normal">Income</FormLabel>
+                        <FormLabel className="font-normal">Ingreso</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -272,18 +287,18 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category</FormLabel>
+                      <FormLabel>Categoría</FormLabel>
                       <div className="flex items-center gap-2">
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
+                              <SelectValue placeholder="Selecciona una categoría" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Needs">Needs (50%)</SelectItem>
-                            <SelectItem value="Wants">Wants (30%)</SelectItem>
-                            <SelectItem value="Savings">Savings (20%)</SelectItem>
+                            <SelectItem value="Needs">Necesidades (50%)</SelectItem>
+                            <SelectItem value="Wants">Deseos (30%)</SelectItem>
+                            <SelectItem value="Savings">Ahorros (20%)</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -293,7 +308,7 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                           onClick={handleAiCategorize}
                           disabled={isAiPending}
                           className="flex-shrink-0"
-                          aria-label="Categorize with AI"
+                          aria-label="Categorizar con IA"
                         >
                           {isAiPending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -308,14 +323,14 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
                 />
                 {aiExplanation && (
                   <FormDescription className="mt-2 text-sm text-muted-foreground bg-secondary p-2 rounded-md">
-                    <span className="font-semibold">AI Suggestion:</span> {aiExplanation}
+                    <span className="font-semibold">Sugerencia de IA:</span> {aiExplanation}
                   </FormDescription>
                 )}
               </div>
             )}
             
             <DialogFooter>
-              <Button type="submit">Add Transaction</Button>
+              <Button type="submit">Agregar Transacción</Button>
             </DialogFooter>
           </form>
         </Form>

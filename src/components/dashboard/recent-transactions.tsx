@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/table"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
 
 import { type Transaction } from "@/lib/types"
 import { formatCurrency, cn } from "@/lib/utils"
 import { format } from "date-fns"
+import { es } from "date-fns/locale"
 import { categoryIcons } from "../icons"
 
 
@@ -26,18 +26,18 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-        <CardDescription>A list of your most recent financial activities.</CardDescription>
+        <CardTitle>Transacciones Recientes</CardTitle>
+        <CardDescription>Una lista de tus actividades financieras más recientes.</CardDescription>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[340px]">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] hidden sm:table-cell">Type</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="hidden md:table-cell">Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-[80px] hidden sm:table-cell">Tipo</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="hidden md:table-cell">Fecha</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -53,11 +53,11 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                     <TableCell>
                       <div className="font-medium">{transaction.description}</div>
                       <div className="text-sm text-muted-foreground md:hidden">
-                        {format(new Date(transaction.date), "MMM d, yyyy")}
+                        {format(new Date(transaction.date), "d MMM, yyyy", { locale: es })}
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {format(new Date(transaction.date), "MMM d, yyyy")}
+                      {format(new Date(transaction.date), "d MMM, yyyy", { locale: es })}
                     </TableCell>
                     <TableCell
                       className={cn(

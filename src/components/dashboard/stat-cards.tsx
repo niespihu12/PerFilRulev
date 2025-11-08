@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, ArrowUp, ArrowDown, PiggyBank } from "lucide-react"
+import { ArrowUp, ArrowDown, PiggyBank } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 
 interface StatCardsProps {
@@ -18,17 +18,17 @@ interface StatCardsProps {
 export function StatCards({ totalIncome, totalExpenses, netSavings }: StatCardsProps) {
   const stats = [
     {
-      title: "Total Income",
+      title: "Ingresos Totales",
       amount: totalIncome,
       icon: <ArrowUp className="h-4 w-4 text-muted-foreground" />,
     },
     {
-      title: "Total Expenses",
+      title: "Gastos Totales",
       amount: totalExpenses,
       icon: <ArrowDown className="h-4 w-4 text-muted-foreground" />,
     },
     {
-      title: "Net Savings",
+      title: "Ahorro Neto",
       amount: netSavings,
       icon: <PiggyBank className="h-4 w-4 text-muted-foreground" />,
     },
@@ -45,7 +45,7 @@ export function StatCards({ totalIncome, totalExpenses, netSavings }: StatCardsP
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stat.amount)}</div>
             <p className="text-xs text-muted-foreground">
-              This month
+              Este mes
             </p>
           </CardContent>
         </Card>

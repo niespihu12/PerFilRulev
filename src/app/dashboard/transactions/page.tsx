@@ -28,9 +28,9 @@ export default function TransactionsPage() {
 
   return (
     <div className="p-4 lg:p-6">
-      <h1 className="text-2xl font-bold mb-4">All Transactions</h1>
+      <h1 className="text-2xl font-bold mb-4">Todas las Transacciones</h1>
       {isLoading ? (
-        <p>Loading transactions...</p>
+        <p>Cargando transacciones...</p>
       ) : (
         <RecentTransactions transactions={sortedTransactions} />
       )}

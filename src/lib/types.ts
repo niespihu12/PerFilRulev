@@ -7,3 +7,11 @@ export type Transaction = {
   type: 'income' | 'expense';
   category: 'Needs' | 'Wants' | 'Savings';
 };
+
+export type Configuration = {
+    id: string;
+    userId: string;
+    needsPercentage: number;
+    wantsPercentage: number;
+    savingsPercentage: number;
+}

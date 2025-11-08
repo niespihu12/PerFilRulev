@@ -31,8 +31,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address."),
-  password: z.string().min(1, "Password is required."),
+  email: z.string().email("Por favor, introduce una dirección de correo electrónico válida."),
+  password: z.string().min(1, "La contraseña es obligatoria."),
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
@@ -67,8 +67,8 @@ export default function LoginPage() {
       } catch (error: any) {
         toast({
           variant: "destructive",
-          title: "Login Failed",
-          description: error.message || "An unexpected error occurred.",
+          title: "Inicio de Sesión Fallido",
+          description: "No se pudo iniciar sesión. Por favor, comprueba tu correo y contraseña.",
         })
       } finally {
         setIsLoading(false)
@@ -83,11 +83,11 @@ export default function LoginPage() {
         await signInWithPopup(auth, provider)
         router.push("/dashboard")
       } catch (error) {
-        console.error("Error signing in with Google", error)
+        console.error("Error al iniciar sesión con Google", error)
         toast({
           variant: "destructive",
-          title: "Login Failed",
-          description: "Could not sign in with Google. Please try again.",
+          title: "Inicio de Sesión Fallido",
+          description: "No se pudo iniciar sesión con Google. Por favor, inténtalo de nuevo.",
         })
       }
     }
@@ -108,9 +108,9 @@ export default function LoginPage() {
           <div className="mb-4 flex justify-center">
             <Logo />
           </div>
-          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-headline">Bienvenido de Nuevo</CardTitle>
           <CardDescription>
-            Enter your credentials to access your financial dashboard.
+            Introduce tus credenciales para acceder a tu panel financiero.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,12 +121,12 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Correo Electrónico</FormLabel>
                     <FormControl>
                       <Input
                         id="email"
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="m@ejemplo.com"
                         {...field}
                       />
                     </FormControl>
@@ -140,12 +140,12 @@ export default function LoginPage() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center">
-                      <FormLabel htmlFor="password">Password</FormLabel>
+                      <FormLabel htmlFor="password">Contraseña</FormLabel>
                       <Link
                         href="#"
                         className="ml-auto inline-block text-sm underline"
                       >
-                        Forgot your password?
+                        ¿Olvidaste tu contraseña?
                       </Link>
                     </div>
                     <FormControl>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? <Loader2 className="animate-spin" /> : "Login"}
+                {isLoading ? <Loader2 className="animate-spin" /> : "Iniciar Sesión"}
               </Button>
             </form>
           </Form>
@@ -166,7 +166,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                O continuar con
               </span>
             </div>
           </div>
@@ -175,9 +175,9 @@ export default function LoginPage() {
             Google
           </Button>
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
+            ¿No tienes una cuenta?{" "}
             <Link href="/signup" className="underline">
-              Sign up
+              Regístrate
             </Link>
           </div>
         </CardContent>

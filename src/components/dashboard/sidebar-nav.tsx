@@ -13,9 +13,9 @@ export function SidebarNav() {
   const pathname = usePathname()
 
   const navItems = [
-    { href: "/dashboard", icon: Home, label: "Dashboard" },
-    { href: "/dashboard/transactions", icon: Wallet, label: "Transactions" },
-    { href: "/dashboard/reports", icon: LineChart, label: "Reports" },
+    { href: "/dashboard", icon: Home, label: "Panel" },
+    { href: "/dashboard/transactions", icon: Wallet, label: "Transacciones" },
+    { href: "/dashboard/reports", icon: LineChart, label: "Reportes" },
   ]
 
   return (
@@ -52,7 +52,7 @@ export function SidebarNav() {
               )}
             >
               <Settings className="h-4 w-4" />
-              Settings
+              Configuración
             </Link>
          </nav>
       </div>

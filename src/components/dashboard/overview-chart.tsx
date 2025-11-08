@@ -19,17 +19,17 @@ const chartConfig = {
     label: "Total",
   },
   Needs: {
-    label: "Needs",
+    label: "Necesidades",
     color: "hsl(var(--chart-1))",
     icon: categoryIcons.Needs
   },
   Wants: {
-    label: "Wants",
+    label: "Deseos",
     color: "hsl(var(--chart-2))",
     icon: categoryIcons.Wants
   },
   Savings: {
-    label: "Savings",
+    label: "Ahorros",
     color: "hsl(var(--chart-3))",
     icon: categoryIcons.Savings
   },
@@ -41,8 +41,8 @@ export function OverviewChart({ data }: OverviewChartProps) {
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="items-center pb-0">
-        <CardTitle>50/30/20 Rule Overview</CardTitle>
-        <CardDescription>Your spending breakdown this month</CardDescription>
+        <CardTitle>Vista General de la Regla 50/30/20</CardTitle>
+        <CardDescription>El desglose de tus gastos este mes</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <DonutChart
@@ -74,7 +74,7 @@ export function OverviewChart({ data }: OverviewChartProps) {
                   ${totalValue.toLocaleString()}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  Total Spent
+                  Total Gastado
                 </span>
               </div>
             );
@@ -84,15 +84,16 @@ export function OverviewChart({ data }: OverviewChartProps) {
       <CardFooter className="flex-col gap-2 text-sm pt-4">
         <div className="flex w-full items-center justify-center gap-4">
           {data.map((item) => {
+            const config = chartConfig[item.category];
             return (
             <div key={item.category} className="flex items-center gap-1.5">
               <span className="size-2.5 rounded-full" style={{ backgroundColor: item.fill }} />
-              <span>{item.category}</span>
+              <span>{config.label}</span>
             </div>
           )})}
         </div>
         <div className="leading-none text-muted-foreground pt-2">
-          Showing spending breakdown for the current month.
+          Mostrando el desglose de gastos para el mes actual.
         </div>
       </CardFooter>
     </Card>
