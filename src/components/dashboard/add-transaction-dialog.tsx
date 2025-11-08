@@ -100,7 +100,7 @@ export function AddTransactionDialog({ isOpen, setIsOpen, onTransactionAdded }: 
       setAiExplanation(null)
       const result = await automaticTransactionCategorization({
         transactionDescription: description,
-        transactionAmount: amount,
+        transactionAmount: Number(amount),
       })
       if (result) {
         form.setValue("category", result.category)
