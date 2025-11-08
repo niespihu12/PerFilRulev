@@ -169,14 +169,14 @@ export default function SettingsPage() {
 
   if (isConfigLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
+      <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-8">
+    <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold">Configuración</h1>
         <p className="text-muted-foreground">Gestiona la configuración de tu cuenta y presupuesto.</p>
@@ -352,5 +352,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
-    

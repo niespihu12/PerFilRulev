@@ -51,7 +51,7 @@ export default function DashboardLayout({
       </aside>
       <div className="flex flex-col">
         <Header onAddTransaction={() => setAddTransactionOpen(true)} />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
             {children}
         </main>
       </div>

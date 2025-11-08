@@ -27,7 +27,7 @@ export default function TransactionsPage() {
   }, [transactions]);
 
   return (
-    <div className="p-4 lg:p-6">
+    <div>
       <h1 className="text-2xl font-bold mb-4">Todas las Transacciones</h1>
       {isLoading ? (
         <p>Cargando transacciones...</p>

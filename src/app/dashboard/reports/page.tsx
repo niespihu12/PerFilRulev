@@ -69,7 +69,7 @@ export default function ReportsPage() {
 
 
   return (
-    <div className="p-4 lg:p-6">
+    <div>
       <h1 className="text-2xl font-bold mb-6">Reportes</h1>
       <div className="grid gap-6 md:grid-cols-2">
         <Card>

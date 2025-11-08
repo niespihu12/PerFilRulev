@@ -91,7 +91,7 @@ export default function DashboardPage() {
 
 
   return (
-    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+    <div className="flex flex-1 flex-col gap-4 bg-background">
       <StatCards
         totalIncome={totalIncome}
         totalExpenses={totalExpenses}
@@ -105,6 +105,6 @@ export default function DashboardPage() {
           <OverviewChart data={chartData} />
         </div>
       </div>
-    </main>
+    </div>
   )
 }
