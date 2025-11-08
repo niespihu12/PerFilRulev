@@ -8,6 +8,12 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { type Transaction } from "@/lib/types"
 
+const categoryTranslations: { [key: string]: string } = {
+  Needs: "Necesidades",
+  Wants: "Deseos",
+  Savings: "Ahorros",
+}
+
 export default function ReportsPage() {
   const firestore = useFirestore()
   const { user } = useUser()
@@ -56,7 +62,7 @@ export default function ReportsPage() {
     })
 
     return Object.entries(report).map(([name, total]) => ({
-      name,
+      name: categoryTranslations[name] || name,
       total,
     })).filter(item => item.total > 0)
   }, [transactions])
@@ -117,7 +123,8 @@ export default function ReportsPage() {
                     cursor={false} 
                     content={<ChartTooltipContent
                       labelFormatter={(value) => value}
-                      formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value as number)}
+                      formatter={(value, name) => `${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD' }).format(value as number)}`}
+                      name="Total"
                     />}
                    />
                    <Bar dataKey="total" layout="vertical" fill="hsl(var(--chart-3))" radius={4} name="Total" />
