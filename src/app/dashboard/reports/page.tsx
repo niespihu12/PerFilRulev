@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import { collection, query } from "firebase/firestore"
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { type Transaction } from "@/lib/types"
 
@@ -50,7 +50,7 @@ export default function ReportsPage() {
     }
 
     transactions.forEach((t) => {
-      if (t.type === "expense") {
+      if (t.type === "expense" && report.hasOwnProperty(t.category)) {
         report[t.category] += t.amount
       }
     })
@@ -58,7 +58,7 @@ export default function ReportsPage() {
     return Object.entries(report).map(([name, total]) => ({
       name,
       total,
-    }))
+    })).filter(item => item.total > 0)
   }, [transactions])
 
 
@@ -104,9 +104,22 @@ export default function ReportsPage() {
               <ChartContainer config={{}} className="min-h-[200px] w-full">
                 <BarChart accessibilityLayer data={categoryReport} layout="vertical">
                    <CartesianGrid horizontal={false} />
-                   <XAxis type="number" hide />
-                   <XAxis dataKey="name" type="category" tickLine={false} tickMargin={10} axisLine={false} />
-                   <ChartTooltip content={<ChartTooltipContent />} />
+                   <YAxis
+                    dataKey="name"
+                    type="category"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    width={80}
+                  />
+                   <XAxis dataKey="total" type="number" hide />
+                   <ChartTooltip 
+                    cursor={false} 
+                    content={<ChartTooltipContent
+                      labelFormatter={(value) => value}
+                      formatter={(value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value as number)}
+                    />}
+                   />
                    <Bar dataKey="total" layout="vertical" fill="hsl(var(--chart-3))" radius={4} name="Total" />
                 </BarChart>
               </ChartContainer>
