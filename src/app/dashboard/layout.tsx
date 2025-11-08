@@ -15,14 +15,11 @@ export default function DashboardLayout({
   const router = useRouter()
 
   useEffect(() => {
-    // If the user is not defined (still loading) or is null (not logged in),
-    // redirect to the login page.
     if (!isUserLoading && !user) {
       router.push("/")
     }
   }, [user, isUserLoading, router])
 
-  // While the user state is loading, show a loading indicator.
   if (isUserLoading) {
     return (
       <div className="flex min-h-screen w-full items-center justify-center">
@@ -31,7 +28,6 @@ export default function DashboardLayout({
     )
   }
 
-  // If the user is authenticated, render the dashboard layout.
   return user ? (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <aside className="hidden border-r bg-muted/40 md:block">
@@ -43,5 +39,5 @@ export default function DashboardLayout({
         {children}
       </div>
     </div>
-  ) : null // Or a fallback component if you want to avoid a null render
+  ) : null
 }
