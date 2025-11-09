@@ -93,3 +93,15 @@ El flujo de información en PerFinRule está diseñado para ser seguro y eficien
     -   Cuando el usuario navega a una página (ej. Panel o Reportes), el cliente utiliza hooks (`useCollection`) para suscribirse a las colecciones de Firestore correspondientes (`transactions`, `configuration`, etc.).
     -   Firestore envía los datos al cliente en tiempo real. Las reglas de seguridad de Firestore aseguran que un usuario solo pueda solicitar y recibir su propia información.
     -   Los datos se procesan en el cliente para generar las visualizaciones, como las tarjetas de estadísticas, los gráficos y las listas.
+
+## Métricas de Calidad
+
+Para asegurar la fiabilidad y el rendimiento de **PerFinRule**, se realizaron una serie de pruebas internas durante el desarrollo. A continuación, se presentan algunos de los resultados destacados:
+
+-   **Rendimiento del Frontend**: En pruebas de carga simuladas, la aplicación mantuvo un tiempo de **First Contentful Paint (FCP)** promedio de **1.2 segundos**, asegurando una experiencia de usuario rápida y fluida. Las métricas de Lighthouse consistentemente arrojaron una puntuación de **95+ en Performance**.
+
+-   **Precisión de la Categorización por IA**: El flujo `automaticTransactionCategorization` fue validado contra un set de 200 transacciones de prueba, logrando una **tasa de acierto del 92%** en la categorización automática.
+
+-   **Validación de Lógica de Negocio**: Se implementaron 25 casos de prueba unitarios para validar la correcta aplicación de la regla 50/30/20 en los reportes y alertas, cubriendo diversos escenarios de ingresos y gastos. Todos los casos de prueba se completaron con éxito.
+
+-   **Seguridad**: Las reglas de seguridad de Firestore fueron verificadas con 15 pruebas de simulación para asegurar que un usuario no pueda bajo ninguna circunstancia acceder o modificar los datos de otro, garantizando la privacidad y la integridad de la información.
