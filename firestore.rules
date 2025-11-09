@@ -2,74 +2,106 @@
  * @fileoverview Firestore Security Rules for PerFinRule application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Users can only access their own profile data and the transactions associated with their user ID.
+ * This ruleset enforces a strict user-ownership model. Each user has full control over their profile, transactions, and category rules.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile information. The userId must match the Firebase Auth UID.
- * - /users/{userId}/transactions/{transactionId}: Stores transaction data for each user.
+ * All data is nested under /users/{userId}, ensuring clear ownership:
+ *   - /users/{userId}: User profile information.
+ *   - /users/{userId}/transactions/{transactionId}: Financial transactions.
+ *   - /users/{userId}/category_rules/{categoryRuleId}: Rules for categorizing transactions.
  *
  * Key Security Decisions:
- * - Users can only create, read, update, and delete their own transactions.
- * - User listing is disallowed to prevent information disclosure.
+ * - Users can only access their own data. There is no administrative override.
+ * - Listing of users is disallowed to prevent data exposure.
+ * - Transactions and category rules inherit ownership from their parent user document.
  *
  * Denormalization for Authorization:
- *   - The userId field in the Transaction document duplicates the path-based ownership. This ensures data consistency and allows for future flexibility if the data structure changes.
+ * The data model inherently denormalizes the `userId` by nesting data under `/users/{userId}`.
+ * This allows for rules that directly compare `request.auth.uid` to the `userId` path parameter, avoiding costly `get()` operations.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Protects user profile data. Only the user with the matching UID can read or write their own profile.
+     * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow (create) User 'user_abc' with matching UID creates their profile.
-     *   request.auth.uid == 'user_abc' and request.resource.data.id == 'user_abc'
-     * @allow (get, update, delete) User 'user_abc' reads/updates/deletes their own profile.
-     *   request.auth.uid == 'user_abc' and resource.data.id == 'user_abc'
-     * @deny (create) User 'user_abc' attempts to create a profile for another user 'user_xyz'.
-     *   request.auth.uid == 'user_abc' and request.resource.data.id == 'user_xyz'
-     * @deny (get, update, delete) User 'user_abc' attempts to read/update/delete another user 'user_xyz' profile.
-     *   request.auth.uid == 'user_abc' and resource.data.id == 'user_xyz'
-     * @principle Enforces strict user-ownership and relational integrity for user profiles.
+     * @allow (create) User with ID 'user123' can create their profile if authenticated as 'user123'.
+     * @deny (create) User with ID 'user456' cannot create a profile for 'user123'.
+     * @allow (get) User with ID 'user123' can retrieve their own profile.
+     * @deny (get) User with ID 'user456' cannot retrieve 'user123's profile.
+     * @allow (update) User with ID 'user123' can update their profile.
+     * @deny (update) User with ID 'user456' cannot update 'user123's profile.
+     * @allow (delete) User with ID 'user123' can delete their profile.
+     * @deny (delete) User with ID 'user456' cannot delete 'user123's profile.
+     * @deny (list) Listing all users is not allowed.
+     * @principle Enforces strict user ownership for profile data.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
       allow get: if isOwner(userId);
-      allow list: if false; // User listing is not permitted.
+      allow list: if false;
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && resource.data.id == userId;
-      allow delete: if isOwner(userId) && resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Protects transaction data for each user. Only the owning user can create, read, update, and delete transactions under their user ID.
+     * @description Controls access to a user's financial transactions.
      * @path /users/{userId}/transactions/{transactionId}
-     * @allow (create) User 'user_abc' creates a transaction under their user ID.
-     *   request.auth.uid == 'user_abc' and request.resource.data.userId == 'user_abc'
-     * @allow (get, update, delete) User 'user_abc' reads/updates/deletes a transaction under their user ID.
-     *   request.auth.uid == 'user_abc' and resource.data.userId == 'user_abc'
-     * @allow (list) User 'user_abc' lists transactions under their user ID.
-     *   request.auth.uid == 'user_abc'
-     * @deny (create) User 'user_abc' attempts to create a transaction for another user 'user_xyz'.
-     *   request.auth.uid == 'user_abc' and request.resource.data.userId == 'user_xyz'
-     * @deny (get, update, delete) User 'user_abc' attempts to read/update/delete a transaction for another user 'user_xyz'.
-     *   request.auth.uid == 'user_abc' and resource.data.userId == 'user_xyz'
-     * @principle Enforces strict user-ownership for transactions and relational integrity between user and transaction data.
+     * @allow (create) User with ID 'user123' can create a transaction under their profile.
+     * @deny (create) User with ID 'user456' cannot create a transaction under 'user123's profile.
+     * @allow (get) User with ID 'user123' can retrieve a transaction under their profile.
+     * @deny (get) User with ID 'user456' cannot retrieve a transaction under 'user123's profile.
+     * @allow (update) User with ID 'user123' can update a transaction under their profile.
+     * @deny (update) User with ID 'user456' cannot update a transaction under 'user123's profile.
+     * @allow (delete) User with ID 'user123' can delete a transaction under their profile.
+     * @deny (delete) User with ID 'user456' cannot delete a transaction under 'user123's profile.
+     * @allow (list) User with ID 'user123' can list transactions under their profile.
+     * @deny (list) User with ID 'user456' cannot list transactions under 'user123's profile.
+     * @principle Enforces user ownership for transaction data.
      */
     match /users/{userId}/transactions/{transactionId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
     }
+
+    /**
+     * @description Controls access to a user's category rules.
+     * @path /users/{userId}/category_rules/{categoryRuleId}
+     * @allow (create) User with ID 'user123' can create a category rule under their profile.
+     * @deny (create) User with ID 'user456' cannot create a category rule under 'user123's profile.
+     * @allow (get) User with ID 'user123' can retrieve a category rule under their profile.
+     * @deny (get) User with ID 'user456' cannot retrieve a category rule under 'user123's profile.
+     * @allow (update) User with ID 'user123' can update a category rule under their profile.
+     * @deny (update) User with ID 'user456' cannot update a category rule under 'user123's profile.
+     * @allow (delete) User with ID 'user123' can delete a category rule under their profile.
+     * @deny (delete) User with ID 'user456' cannot delete a category rule under 'user123's profile.
+     * @allow (list) User with ID 'user123' can list category rules under their profile.
+     * @deny (list) User with ID 'user456' cannot list category rules under 'user123's profile.
+     * @principle Enforces user ownership for category rule data.
+     */
+    match /users/{userId}/category_rules/{categoryRuleId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+
+  // Helper functions
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return isSignedIn() && request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+    return isOwner(userId) && resource != null;
   }
 }

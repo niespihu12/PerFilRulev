@@ -22,7 +22,8 @@
       },
       "required": [
         "id",
-        "email"
+        "email",
+        "name"
       ]
     },
     "Transaction": {
@@ -39,29 +40,65 @@
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N Transaction)"
         },
-        "amount": {
-          "type": "number",
-          "description": "The amount of the transaction."
-        },
         "date": {
           "type": "string",
-          "description": "The date of the transaction.",
+          "description": "Date of the transaction.",
           "format": "date-time"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the transaction (positive for income, negative for expense)."
         },
         "category": {
           "type": "string",
-          "description": "The category of the transaction (Needs, Wants, Savings)."
+          "description": "Category of the transaction (Needs, Wants, Savings)."
         },
         "description": {
           "type": "string",
-          "description": "A description of the transaction."
+          "description": "Description of the transaction."
         }
       },
       "required": [
         "id",
         "userId",
-        "amount",
         "date",
+        "amount",
+        "category",
+        "description"
+      ]
+    },
+    "CategoryRule": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CategoryRule",
+      "type": "object",
+      "description": "Represents a rule for automatically categorizing transactions.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the category rule."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N CategoryRule)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the rule."
+        },
+        "condition": {
+          "type": "string",
+          "description": "The condition that triggers the rule (e.g., transaction type, amount range)."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category to assign to the transaction if the condition is met (Needs, Wants, Savings)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "description",
+        "condition",
         "category"
       ]
     }
@@ -69,8 +106,7 @@
   "auth": {
     "providers": [
       "password",
-      "anonymous",
-      "google.com"
+      "anonymous"
     ]
   },
   "firestore": {
@@ -78,15 +114,15 @@
       {
         "path": "/users/{userId}",
         "definition": {
-          "entityName": "user",
+          "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profile information. The 'userId' parameter is the unique identifier for the user, matching the Firebase Auth UID.",
+          "description": "Stores user profile information.  User's data is scoped under this path.",
           "params": [
             {
               "name": "userId",
-              "description": "The Firebase Auth UID of the user."
+              "description": "The unique identifier for the user."
             }
           ]
         }
@@ -94,24 +130,44 @@
       {
         "path": "/users/{userId}/transactions/{transactionId}",
         "definition": {
-          "entityName": "transaction",
+          "entityName": "Transaction",
           "schema": {
             "$ref": "#/backend/entities/Transaction"
           },
-          "description": "Stores transaction data for each user. Path-based ownership ensures that a user can only access transactions under their own user ID.",
+          "description": "Stores financial transactions for a specific user.",
           "params": [
             {
               "name": "userId",
-              "description": "The Firebase Auth UID of the user who owns the transaction."
+              "description": "The unique identifier for the user."
             },
             {
               "name": "transactionId",
-              "description": "Unique identifier for the transaction."
+              "description": "The unique identifier for the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/category_rules/{categoryRuleId}",
+        "definition": {
+          "entityName": "CategoryRule",
+          "schema": {
+            "$ref": "#/backend/entities/CategoryRule"
+          },
+          "description": "Stores category rules for a specific user.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "categoryRuleId",
+              "description": "The unique identifier for the category rule."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure data security and follows the principle of authorization independence. Each user has their own collection of transactions, ensuring they can only access their own data. The `userId` field within the `transactions` collection is present for data consistency. No denormalization is needed since access to the transactions is determined by the path.  The path-based ownership enables efficient and secure `list` operations, thus supporting QAPs.  A naming convention helps maintain a consistent and predictable structure."
+    "reasoning": "The Firestore structure prioritizes user-owned data and authorization independence. User data and associated transactions and rules are stored under the `/users/{userId}` path to enforce strict ownership. This eliminates the need for complex security rules that rely on `get()` calls. Transactions and CategoryRules are stored as subcollections of users to naturally inherit ownership.\n\n**Authorization Independence**: Achieved by storing transactions and category rules as subcollections of `/users/{userId}`. This allows security rules to be based solely on `request.auth.uid == userId`, without requiring `get()` calls to parent documents.\n\n**QAPs**: Supported by the hierarchical structure, enabling secure `list` operations on `/users/{userId}/transactions` and `/users/{userId}/category_rules` based on the user's ID."
   }
 }
