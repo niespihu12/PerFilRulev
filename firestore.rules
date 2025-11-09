@@ -90,6 +90,17 @@ service cloud.firestore {
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
     }
+
+    /**
+     * @description Controls access to a user's configuration settings.
+     * @path /users/{userId}/configuration/{configId}
+     * @allow (list, get) User can read their own configuration.
+     * @allow (create, update, delete) User can manage their own configuration.
+     * @principle Enforces user ownership for configuration data.
+     */
+    match /users/{userId}/configuration/{configId} {
+      allow read, write: if isOwner(userId);
+    }
   }
 
   // Helper functions

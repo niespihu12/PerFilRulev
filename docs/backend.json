@@ -101,12 +101,47 @@
         "condition",
         "category"
       ]
+    },
+    "Configuration": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Configuration",
+      "type": "object",
+      "description": "Represents user-specific settings, such as budget percentages.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the configuration document."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Configuration)"
+        },
+        "needsPercentage": {
+          "type": "number",
+          "description": "The percentage allocated to 'Needs'."
+        },
+        "wantsPercentage": {
+          "type": "number",
+          "description": "The percentage allocated to 'Wants'."
+        },
+        "savingsPercentage": {
+          "type": "number",
+          "description": "The percentage allocated to 'Savings'."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "needsPercentage",
+        "wantsPercentage",
+        "savingsPercentage"
+      ]
     }
   },
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {
@@ -163,6 +198,26 @@
             {
               "name": "categoryRuleId",
               "description": "The unique identifier for the category rule."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/configuration/{configId}",
+        "definition": {
+          "entityName": "Configuration",
+          "schema": {
+            "$ref": "#/backend/entities/Configuration"
+          },
+          "description": "Stores user-specific settings, like budget percentages.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "configId",
+              "description": "The unique identifier for the configuration document."
             }
           ]
         }
