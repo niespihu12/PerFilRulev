@@ -4,6 +4,55 @@
 
 El proyecto está construido con Next.js, React, TypeScript y Tailwind CSS, utilizando Firebase como backend para la autenticación y la base de datos en tiempo real.
 
+## Primeros Pasos
+
+Para ejecutar este proyecto en tu máquina local, sigue estos pasos:
+
+### 1. Instalación
+
+Primero, instala todas las dependencias del proyecto usando npm:
+
+```bash
+npm install
+```
+
+### 2. Configuración del Entorno
+
+La funcionalidad de categorización por IA utiliza Genkit, que a su vez se conecta a la API de Gemini. Para que funcione, necesitas una clave de API.
+
+1.  Crea un archivo llamado `.env` en la raíz del proyecto.
+2.  Añade tu clave de API de Google AI Studio al archivo:
+
+```
+GEMINI_API_KEY=TU_API_KEY_AQUI
+```
+
+Puedes obtener una clave de API gratuita en [Google AI Studio](https://aistudio.google.com/app/apikey).
+
+### 3. Ejecutar la Aplicación
+
+El proyecto requiere dos procesos para funcionar completamente: el servidor de desarrollo de Next.js para el frontend y el servidor de Genkit para los flujos de IA.
+
+1.  **Iniciar el servidor de Next.js**:
+    Abre una terminal y ejecuta:
+
+    ```bash
+    npm run dev
+    ```
+
+    Esto iniciará la aplicación frontend en `http://localhost:9002`.
+
+2.  **Iniciar el servidor de Genkit**:
+    Abre una **segunda terminal** y ejecuta:
+
+    ```bash
+    npm run genkit:watch
+    ```
+
+    Esto iniciará el servicio de IA, que estará a la escucha de las solicitudes de categorización que se hagan desde la aplicación.
+
+¡Y listo! Ya puedes abrir tu navegador y empezar a usar PerFinRule.
+
 ## Componentes Generados/Asistidos por IA
 
 Gran parte de la aplicación fue desarrollada con la asistencia de un modelo de IA para acelerar el desarrollo y mejorar la funcionalidad:
