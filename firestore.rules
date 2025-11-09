@@ -9,6 +9,7 @@
  *   - /users/{userId}: User profile information.
  *   - /users/{userId}/transactions/{transactionId}: Financial transactions.
  *   - /users/{userId}/category_rules/{categoryRuleId}: Rules for categorizing transactions.
+ *   - /users/{userId}/configuration/{configId}: User-specific settings.
  *
  * Key Security Decisions:
  * - Users can only access their own data. There is no administrative override.
@@ -94,12 +95,13 @@ service cloud.firestore {
     /**
      * @description Controls access to a user's configuration settings.
      * @path /users/{userId}/configuration/{configId}
-     * @allow (list, get) User can read their own configuration.
-     * @allow (create, update, delete) User can manage their own configuration.
+     * @allow (get, list) User can read their own configuration.
+     * @allow (write) User can manage their own configuration.
      * @principle Enforces user ownership for configuration data.
      */
     match /users/{userId}/configuration/{configId} {
-      allow read, write: if isOwner(userId);
+      allow get, list: if isOwner(userId);
+      allow write: if isOwner(userId);
     }
   }
 
