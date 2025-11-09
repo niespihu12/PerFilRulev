@@ -69,10 +69,22 @@ La aplicación utiliza los servicios de **Firebase** como su principal plataform
 
 -   **Firebase Authentication**: Gestiona el registro e inicio de sesión de usuarios, soportando tanto el método de correo/contraseña como la autenticación a través de proveedores como Google.
 
--   **Firestore**: Se utiliza como la base de datos NoSQL para la persistencia de todos los datos de la aplicación. La información se almacena en tiempo real y se estructura de forma jerárquica para garantizar la seguridad y la propiedad de los datos por parte de cada usuario. Las colecciones principales incluyen:
-    -   `/users/{userId}`: Almacena la información del perfil de cada usuario.
-    -   `/users/{userId}/transactions`: Contiene todos los ingresos y gastos registrados por el usuario.
-    -   `/users/{userId}/configuration`: Guarda las personalizaciones del presupuesto (ej. porcentajes 50/30/20) de cada usuario.
+-   **Firestore**: Se utiliza como la base de datos NoSQL para la persistencia de todos los datos de la aplicación. La información se almacena en tiempo real y se estructura de forma jerárquica para garantizar la seguridad y la propiedad de los datos por parte de cada usuario.
+
+### Modelos de Datos (Colecciones en Firestore)
+
+-   `/users/{userId}`
+    -   **Descripción**: Almacena la información del perfil de cada usuario (nombre, correo, etc.). Es el documento raíz para todos los datos asociados a un usuario.
+    -   **Entidad**: `User`
+
+-   `/users/{userId}/transactions/{transactionId}`
+    -   **Descripción**: Subcolección que contiene todos los ingresos y gastos registrados por el usuario. Cada documento es una transacción individual.
+    -   **Entidad**: `Transaction` (`id`, `userId`, `date`, `amount`, `type`, `category`, `description`)
+
+-   `/users/{userId}/configuration/{configId}`
+    -   **Descripción**: Subcolección que guarda las personalizaciones del presupuesto del usuario. Normalmente contiene un único documento con los porcentajes de la regla 50/30/20.
+    -   **Entidad**: `Configuration` (`id`, `userId`, `needsPercentage`, `wantsPercentage`, `savingsPercentage`)
+
 
 ## Flujo de Datos
 
